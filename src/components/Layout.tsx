@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, BookOpen, Moon, Sun } from "lucide-react";
+import { Search, BookOpen, Moon, Sun, Scale } from "lucide-react";
 import { useTheme } from "next-themes";
 import SearchArticle from "./SearchArticle";
 import AllLaws from "./AllLaws";
@@ -19,8 +19,9 @@ const Layout = () => {
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <header className="border-b border-border sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-14 max-w-screen-2xl items-center">
-          <div className="mr-4 hidden md:flex">
-            <h1 className="text-primary font-bold text-xl">VADE MECUM PRO</h1>
+          <div className="mr-4 hidden md:flex items-center gap-2">
+            <Scale className="h-5 w-5 text-primary" />
+            <h1 className="text-primary font-serif font-bold text-xl">VADE MECUM <span className="text-gradient-primary font-bold">PRO</span></h1>
           </div>
           
           <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
@@ -63,7 +64,7 @@ const Layout = () => {
       
       <footer className="border-t border-border py-4 text-center text-sm text-muted-foreground">
         <div className="container">
-          <p>VADE MECUM PRO &copy; {new Date().getFullYear()} - Todos os direitos reservados</p>
+          <p>VADE MECUM <span className="font-bold">PRO</span> &copy; {new Date().getFullYear()} - Todos os direitos reservados</p>
         </div>
       </footer>
     </div>

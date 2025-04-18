@@ -1,30 +1,28 @@
 
-import { GoogleGenerativeAI } from '@google/generative-ai';
-
-// This is a placeholder API key. In a production environment, this should be stored securely.
-// For demo purposes, we're using a placeholder. You would need to replace this with your actual Gemini API key.
-const API_KEY = 'YOUR_GEMINI_API_KEY'; 
+// This is the actual API key provided by the user
+const API_KEY = 'AIzaSyDvJ23IolKwjdxAnTv7l8DwLuwGRZ_tIR8';
 
 class GeminiAIService {
-  private genAI: GoogleGenerativeAI;
-  private model: any;
-
-  constructor() {
-    this.genAI = new GoogleGenerativeAI(API_KEY);
-    this.model = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
-  }
-
-  async explainArticle(articleText: string): Promise<string> {
+  async explainArticle(articleText: string, mode: 'technical' | 'formal' = 'technical'): Promise<string> {
     try {
-      const prompt = `Explique o seguinte artigo de lei de forma detalhada, clara e didática:
+      let prompt;
       
-      "${articleText}"
-      
-      A explicação deve ser abrangente e facilitar o entendimento, mesmo para pessoas sem formação jurídica.`;
+      if (mode === 'technical') {
+        prompt = `Explique o seguinte artigo de lei de forma técnica e detalhada, utilizando terminologia jurídica apropriada:
+        
+        "${articleText}"
+        
+        A explicação deve ser abrangente e demonstrar conhecimento jurídico profundo.`;
+      } else {
+        prompt = `Explique o seguinte artigo de lei de forma simples e acessível para alguém sem conhecimento jurídico:
+        
+        "${articleText}"
+        
+        Use linguagem cotidiana, exemplos simples e evite termos técnicos. A explicação deve ser compreensível para um leigo.`;
+      }
 
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      return response.text();
+      const response = await this.callGeminiAPI(prompt);
+      return response;
     } catch (error) {
       console.error('Erro ao gerar explicação do artigo:', error);
       throw new Error('Não foi possível gerar a explicação do artigo. Tente novamente mais tarde.');
@@ -39,9 +37,8 @@ class GeminiAIService {
       
       Gere um exemplo prático e realista da aplicação deste artigo no cotidiano ou em um caso jurídico. O exemplo deve ser detalhado e ilustrar claramente a aplicação da lei.`;
 
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      return response.text();
+      const response = await this.callGeminiAPI(prompt);
+      return response;
     } catch (error) {
       console.error('Erro ao gerar exemplo prático:', error);
       throw new Error('Não foi possível gerar o exemplo prático. Tente novamente mais tarde.');
@@ -62,9 +59,8 @@ class GeminiAIService {
       
       Formate as anotações de forma clara e organizada para estudo.`;
 
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      return response.text();
+      const response = await this.callGeminiAPI(prompt);
+      return response;
     } catch (error) {
       console.error('Erro ao gerar anotações:', error);
       throw new Error('Não foi possível gerar as anotações. Tente novamente mais tarde.');
@@ -81,12 +77,52 @@ class GeminiAIService {
       
       "${question}"`;
 
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      return response.text();
+      const response = await this.callGeminiAPI(prompt);
+      return response;
     } catch (error) {
       console.error('Erro ao responder pergunta:', error);
       throw new Error('Não foi possível responder à pergunta. Tente novamente mais tarde.');
+    }
+  }
+
+  private async callGeminiAPI(prompt: string): Promise<string> {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: prompt
+            }]
+          }]
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Extract text from Gemini response format
+      if (data.candidates && 
+          data.candidates[0] && 
+          data.candidates[0].content && 
+          data.candidates[0].content.parts && 
+          data.candidates[0].content.parts[0] && 
+          data.candidates[0].content.parts[0].text) {
+        return data.candidates[0].content.parts[0].text;
+      }
+      
+      return "Não foi possível processar a resposta da IA.";
+    } catch (error) {
+      console.error('Error calling Gemini API:', error);
+      throw error;
     }
   }
 }

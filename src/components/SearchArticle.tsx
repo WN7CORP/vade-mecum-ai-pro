@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
-import { Search, Sparkles } from "lucide-react";
+import { Search, Sparkles, Scale } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ArticleView from "./ArticleView";
 import googleSheetsService from "@/services/GoogleSheetsService";
@@ -28,14 +27,12 @@ const SearchArticle = () => {
   const [error, setError] = useState<string | null>(null);
   const [shakeSearch, setShakeSearch] = useState(false);
 
-  // Efeito para carregar as leis disponíveis
   useEffect(() => {
     const loadLaws = async () => {
       try {
         const availableLaws = await googleSheetsService.getLaws();
         setLaws(availableLaws);
         
-        // Selecionar automaticamente a primeira lei
         if (availableLaws.length > 0) {
           setSelectedLawIndex(0);
         }
@@ -48,9 +45,7 @@ const SearchArticle = () => {
     loadLaws();
   }, []);
 
-  // Função para pesquisar o artigo
   const searchArticle = async () => {
-    // Validar entrada
     if (!articleNumber.trim()) {
       setShakeSearch(true);
       setTimeout(() => setShakeSearch(false), 500);
@@ -86,7 +81,6 @@ const SearchArticle = () => {
     }
   };
 
-  // Variantes para animação
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { 
@@ -113,7 +107,6 @@ const SearchArticle = () => {
     }
   };
 
-  // Detectar tecla Enter
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       searchArticle();
@@ -133,9 +126,12 @@ const SearchArticle = () => {
             className="space-y-8 px-4 py-6"
           >
             <motion.div variants={itemVariants} className="text-center space-y-4">
-              <h1 className="text-4xl font-bold text-primary">VADE MECUM PRO</h1>
+              <h1 className="text-4xl font-bold text-primary font-serif flex items-center justify-center gap-2">
+                <Scale className="h-6 w-6" />
+                VADE MECUM <span className="text-gradient-primary font-bold">PRO</span>
+              </h1>
               <p className="text-muted-foreground">
-                Pesquise e estude a legislação com IA para explicações detalhadas
+                Pesquise e estude a legislação com explicações detalhadas
               </p>
             </motion.div>
             
@@ -210,7 +206,7 @@ const SearchArticle = () => {
               >
                 <div className="flex items-center justify-center gap-2 text-primary">
                   <Sparkles className="h-4 w-4" />
-                  <span className="text-sm font-medium">Potencializado por IA</span>
+                  <span className="text-sm font-medium">Com explicação</span>
                 </div>
               </motion.div>
             </motion.div>
