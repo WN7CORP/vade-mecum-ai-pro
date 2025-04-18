@@ -4,37 +4,28 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
-import {
-  Copy, FileDown, PlayIcon, PauseIcon, MicOffIcon, 
-  Bookmark, BookmarkPlusIcon, Highlighter, MessageSquare,
-  Lightbulb, Info, Trash2, GanttChartSquare, StickyNote, FilePlus
-} from "lucide-react";
+import { Copy, FileDown, PlayIcon, PauseIcon, MicOffIcon, Bookmark, BookmarkPlusIcon, Highlighter, MessageSquare, Lightbulb, Info, Trash2, GanttChartSquare, StickyNote, FilePlus } from "lucide-react";
 import speechService from '@/services/SpeechService';
 import pdfService from '@/services/PDFService';
 import geminiAIService from '@/services/GeminiAIService';
-
 interface ArticleViewProps {
   articleNumber: string;
   content: string;
   lawTitle: string;
 }
-
 type HighlightColor = "purple" | "yellow" | "blue" | "green" | "pink";
-
 interface Highlight {
   text: string;
   color: HighlightColor;
   startIndex: number;
   endIndex: number;
 }
-
 interface Note {
   id: string;
   text: string;
   highlights: Highlight[];
   createdAt: Date;
 }
-
 interface ArticleHighlight {
   id: string;
   text: string;
@@ -42,7 +33,6 @@ interface ArticleHighlight {
   startOffset: number;
   endOffset: number;
 }
-
 const HIGHLIGHT_COLORS: Record<HighlightColor, string> = {
   purple: "bg-purple-500/30",
   yellow: "bg-yellow-500/30",
@@ -50,7 +40,6 @@ const HIGHLIGHT_COLORS: Record<HighlightColor, string> = {
   green: "bg-green-500/30",
   pink: "bg-pink-500/30"
 };
-
 const ArticleView: React.FC<ArticleViewProps> = ({
   articleNumber,
   content,
@@ -76,28 +65,20 @@ const ArticleView: React.FC<ArticleViewProps> = ({
   const [explanationLoaded, setExplanationLoaded] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const articleRef = useRef<HTMLDivElement>(null);
-
   const isMobile = useIsMobile();
-
   const formatContent = (text: string) => {
     return text.split(/\n/).map((paragraph, index) => {
-      const formattedParagraph = paragraph
-      .replace(/(Art\.\s+\d+[°º]?(?:-[A-Z])?)/g, '<strong>$1</strong>')
-      .replace(/(Parágrafo Único)/g, '<strong>$1</strong>');
-
+      const formattedParagraph = paragraph.replace(/(Art\.\s+\d+[°º]?(?:-[A-Z])?)/g, '<strong>$1</strong>').replace(/(Parágrafo Único)/g, '<strong>$1</strong>');
       return <p key={index} className="my-2" dangerouslySetInnerHTML={{
         __html: formattedParagraph || '<br />'
       }} />;
     });
   };
-
   const formattedContentWithHighlights = () => {
     if (articleHighlights.length === 0) {
       return formatContent(content);
     }
-
     const sortedHighlights = [...articleHighlights].sort((a, b) => a.startOffset - b.startOffset);
-
     const paragraphs = content.split(/\n/);
     let currentOffset = 0;
     return paragraphs.map((paragraph, paragraphIndex) => {
@@ -105,11 +86,9 @@ const ArticleView: React.FC<ArticleViewProps> = ({
         currentOffset += 1;
         return <p key={paragraphIndex} className="my-2"><br /></p>;
       }
-
       const paragraphLength = paragraph.length;
       const paragraphStart = currentOffset;
       const paragraphEnd = paragraphStart + paragraphLength;
-
       const paragraphHighlights = sortedHighlights.filter(h => {
         return h.startOffset >= paragraphStart && h.startOffset < paragraphEnd || h.endOffset > paragraphStart && h.endOffset <= paragraphEnd || h.startOffset <= paragraphStart && h.endOffset >= paragraphEnd;
       }).map(h => {
@@ -119,21 +98,16 @@ const ArticleView: React.FC<ArticleViewProps> = ({
           endOffset: Math.min(paragraphLength, h.endOffset - paragraphStart)
         };
       });
-
       let formattedParagraph = paragraph.replace(/(Art\.\s+\d+[°º]?(?:-[A-Z])?)/g, '<strong>$1</strong>').replace(/(Parágrafo Único)/g, '<strong>$1</strong>');
-
       if (paragraphHighlights.length === 0) {
         currentOffset += paragraphLength + 1;
         return <p key={paragraphIndex} className="my-2" dangerouslySetInnerHTML={{
           __html: formattedParagraph
         }} />;
       }
-
       let result = [];
       let lastIndex = 0;
-
       paragraphHighlights.sort((a, b) => a.startOffset - b.startOffset);
-
       for (const highlight of paragraphHighlights) {
         if (highlight.startOffset > lastIndex) {
           const beforeText = formattedParagraph.substring(lastIndex, highlight.startOffset);
@@ -141,14 +115,12 @@ const ArticleView: React.FC<ArticleViewProps> = ({
             __html: beforeText
           }} />);
         }
-
         const highlightedText = formattedParagraph.substring(highlight.startOffset, highlight.endOffset);
         result.push(<span key={`highlight-${highlight.id}`} className={`${HIGHLIGHT_COLORS[highlight.color]} px-1 rounded`} dangerouslySetInnerHTML={{
           __html: highlightedText
         }} />);
         lastIndex = highlight.endOffset;
       }
-
       if (lastIndex < formattedParagraph.length) {
         const afterText = formattedParagraph.substring(lastIndex);
         result.push(<span key={`${paragraphIndex}-end`} dangerouslySetInnerHTML={{
@@ -159,7 +131,6 @@ const ArticleView: React.FC<ArticleViewProps> = ({
       return <p key={paragraphIndex} className="my-2">{result}</p>;
     });
   };
-
   const loadExplanation = useCallback(async (mode: 'technical' | 'formal') => {
     try {
       setIsLoadingAI(true);
@@ -179,10 +150,8 @@ const ArticleView: React.FC<ArticleViewProps> = ({
       setIsLoadingAI(false);
     }
   }, [content]);
-
   const loadExample = useCallback(async () => {
     if (example) return;
-
     try {
       setIsLoadingAI(true);
       const exampleText = await geminiAIService.generateExample(content);
@@ -199,10 +168,8 @@ const ArticleView: React.FC<ArticleViewProps> = ({
       setIsLoadingAI(false);
     }
   }, [content, example]);
-
   const loadAINotes = useCallback(async () => {
     if (aiNotes) return;
-
     try {
       setIsLoadingAI(true);
       const notes = await geminiAIService.generateNotes(content);
@@ -219,7 +186,6 @@ const ArticleView: React.FC<ArticleViewProps> = ({
       setIsLoadingAI(false);
     }
   }, [content, aiNotes]);
-
   useEffect(() => {
     const handleScroll = () => {
       if (articleRef.current) {
@@ -236,7 +202,6 @@ const ArticleView: React.FC<ArticleViewProps> = ({
       }
     };
   }, []);
-
   const startReading = () => {
     speechService.loadVoices().then(() => {
       speechService.speak(content, () => {
@@ -262,7 +227,6 @@ const ArticleView: React.FC<ArticleViewProps> = ({
     setIsReading(false);
     setIsPaused(false);
   };
-
   const copyArticle = () => {
     const textToCopy = `${articleNumber}\n\n${content}`;
     navigator.clipboard.writeText(textToCopy).then(() => {
@@ -280,7 +244,6 @@ const ArticleView: React.FC<ArticleViewProps> = ({
       });
     });
   };
-
   const toggleFavorite = () => {
     setIsFavorite(!isFavorite);
     toast({
@@ -289,7 +252,6 @@ const ArticleView: React.FC<ArticleViewProps> = ({
       duration: 3000
     });
   };
-
   const increaseFontSize = () => {
     setFontSize(prev => {
       const newSize = Math.min(prev + 2, 28);
@@ -302,7 +264,6 @@ const ArticleView: React.FC<ArticleViewProps> = ({
       return newSize;
     });
   };
-
   const askQuestion = async () => {
     if (!question.trim()) return;
     try {
@@ -321,7 +282,6 @@ const ArticleView: React.FC<ArticleViewProps> = ({
       setIsLoadingAI(false);
     }
   };
-
   const addNote = () => {
     if (!newNote.trim()) return;
     const note: Note = {
@@ -338,7 +298,6 @@ const ArticleView: React.FC<ArticleViewProps> = ({
       duration: 3000
     });
   };
-
   const removeNote = (noteId: string) => {
     setNotes(prev => prev.filter(note => note.id !== noteId));
     toast({
@@ -347,7 +306,6 @@ const ArticleView: React.FC<ArticleViewProps> = ({
       duration: 3000
     });
   };
-
   const addArticleHighlight = () => {
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0 || selection.toString().trim() === '') {
@@ -369,10 +327,8 @@ const ArticleView: React.FC<ArticleViewProps> = ({
         });
         return;
       }
-
       const textContent = content;
       const selectedText = selection.toString();
-
       const findAllOccurrences = (str: string, substr: string) => {
         const result = [];
         let idx = str.indexOf(substr);
@@ -382,7 +338,6 @@ const ArticleView: React.FC<ArticleViewProps> = ({
         }
         return result;
       };
-
       const occurrences = findAllOccurrences(textContent, selectedText);
       if (occurrences.length === 0) {
         toast({
@@ -392,10 +347,8 @@ const ArticleView: React.FC<ArticleViewProps> = ({
         });
         return;
       }
-
       const startOffset = occurrences[0];
       const endOffset = startOffset + selectedText.length;
-
       const newHighlight: ArticleHighlight = {
         id: Date.now().toString(),
         text: selectedText,
@@ -403,9 +356,7 @@ const ArticleView: React.FC<ArticleViewProps> = ({
         startOffset,
         endOffset
       };
-
       setArticleHighlights(prev => [...prev, newHighlight]);
-
       selection.removeAllRanges();
       toast({
         title: "Texto destacado",
@@ -421,7 +372,6 @@ const ArticleView: React.FC<ArticleViewProps> = ({
       });
     }
   };
-
   const clearAllHighlights = () => {
     setArticleHighlights([]);
     toast({
@@ -430,18 +380,15 @@ const ArticleView: React.FC<ArticleViewProps> = ({
       duration: 3000
     });
   };
-
   const exportToPDF = async () => {
     try {
       setIsExportingPDF(true);
-
       if (!explanationLoaded) {
         await loadExplanation(explanationMode);
       }
       if (!example) {
         await loadExample();
       }
-
       const pdfData = {
         number: articleNumber,
         content,
@@ -449,14 +396,12 @@ const ArticleView: React.FC<ArticleViewProps> = ({
         explanation,
         example
       };
-
       const downloadLink = await pdfService.generatePDF(pdfData);
       toast({
         title: "PDF gerado com sucesso!",
         description: "O arquivo estará disponível por 7 dias.",
         duration: 5000
       });
-
       window.open(downloadLink, '_blank');
     } catch (error) {
       console.error('Erro ao exportar para PDF:', error);
@@ -469,16 +414,13 @@ const ArticleView: React.FC<ArticleViewProps> = ({
       setIsExportingPDF(false);
     }
   };
-
   const scrollToTop = () => {
     articleRef.current?.scrollTo({
       top: 0,
       behavior: 'smooth'
     });
   };
-
-  return (
-    <div className="relative flex flex-col w-full h-full max-w-7xl mx-auto px-4">
+  return <div className="relative flex flex-col w-full h-full max-w-7xl mx-auto px-0">
       <div className="flex items-center gap-2 py-2 border-b sticky top-0 bg-background z-10">
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={decreaseFontSize}>A-</Button>
@@ -493,12 +435,8 @@ const ArticleView: React.FC<ArticleViewProps> = ({
               <p className="text-sm text-muted-foreground">{lawTitle}</p>
               <CardTitle className="text-2xl text-primary flex items-center gap-2 font-serif">
                 {articleNumber}
-                <Button variant="ghost" size="icon" onClick={toggleFavorite} 
-                  className="ml-1" 
-                  aria-label={isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}>
-                  {isFavorite ? 
-                    <Bookmark className="h-5 w-5 text-primary fill-primary" /> : 
-                    <BookmarkPlusIcon className="h-5 w-5" />}
+                <Button variant="ghost" size="icon" onClick={toggleFavorite} className="ml-1" aria-label={isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}>
+                  {isFavorite ? <Bookmark className="h-5 w-5 text-primary fill-primary" /> : <BookmarkPlusIcon className="h-5 w-5" />}
                 </Button>
               </CardTitle>
             </div>
@@ -508,9 +446,7 @@ const ArticleView: React.FC<ArticleViewProps> = ({
                 <Copy className="h-4 w-4 mr-2" />
                 Copiar
               </Button>
-              <Button variant="outline" size="sm" onClick={exportToPDF} 
-                disabled={isExportingPDF} 
-                className="flex-1 sm:flex-none">
+              <Button variant="outline" size="sm" onClick={exportToPDF} disabled={isExportingPDF} className="flex-1 sm:flex-none">
                 <FileDown className="h-4 w-4 mr-2" />
                 PDF
               </Button>
@@ -518,38 +454,30 @@ const ArticleView: React.FC<ArticleViewProps> = ({
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {!isReading ? (
-              <Button variant="outline" size="sm" onClick={startReading} className="w-full sm:w-auto">
+            {!isReading ? <Button variant="outline" size="sm" onClick={startReading} className="w-full sm:w-auto">
                 <PlayIcon className="h-4 w-4 mr-2" />
                 Ouvir artigo
-              </Button>
-            ) : (
-              <>
+              </Button> : <>
                 <Button variant="outline" size="sm" onClick={pauseReading} className="flex-1 sm:w-auto">
-                  {isPaused ? (
-                    <>
+                  {isPaused ? <>
                       <PlayIcon className="h-4 w-4 mr-2" />
                       Continuar
-                    </>
-                  ) : (
-                    <>
+                    </> : <>
                       <PauseIcon className="h-4 w-4 mr-2" />
                       Pausar
-                    </>
-                  )}
+                    </>}
                 </Button>
                 <Button variant="outline" size="sm" onClick={stopReading} className="flex-1 sm:w-auto">
                   <MicOffIcon className="h-4 w-4 mr-2" />
                   Parar
                 </Button>
-              </>
-            )}
+              </>}
           </div>
         </CardHeader>
 
         <CardContent ref={articleRef} className="overflow-y-auto" style={{
-          maxHeight: "calc(100vh - 250px)"
-        }}>
+        maxHeight: "calc(100vh - 250px)"
+      }}>
           <Tabs defaultValue="article" className="w-full">
             <TabsList className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-5'} mb-4`}>
               <TabsTrigger value="article">Artigo</TabsTrigger>
@@ -560,8 +488,9 @@ const ArticleView: React.FC<ArticleViewProps> = ({
             </TabsList>
 
             <TabsContent value="article" className="mt-2 pb-4">
-              <div ref={contentRef} className="prose prose-invert max-w-none space-y-4" 
-                style={{ fontSize: `${fontSize}px` }}>
+              <div ref={contentRef} className="prose prose-invert max-w-none space-y-4" style={{
+              fontSize: `${fontSize}px`
+            }}>
                 {formattedContentWithHighlights()}
               </div>
             </TabsContent>
@@ -575,15 +504,11 @@ const ArticleView: React.FC<ArticleViewProps> = ({
                   </div>
                   
                   <div className="flex gap-2">
-                    <Button size="sm" 
-                      variant={explanationMode === 'technical' ? 'default' : 'outline'} 
-                      onClick={() => loadExplanation('technical')}>
+                    <Button size="sm" variant={explanationMode === 'technical' ? 'default' : 'outline'} onClick={() => loadExplanation('technical')}>
                       <Info className="h-4 w-4 mr-1" />
                       Técnica
                     </Button>
-                    <Button size="sm" 
-                      variant={explanationMode === 'formal' ? 'default' : 'outline'} 
-                      onClick={() => loadExplanation('formal')}>
+                    <Button size="sm" variant={explanationMode === 'formal' ? 'default' : 'outline'} onClick={() => loadExplanation('formal')}>
                       <Info className="h-4 w-4 mr-1" />
                       Simplificada
                     </Button>
@@ -660,8 +585,6 @@ const ArticleView: React.FC<ArticleViewProps> = ({
           </Tabs>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 };
-
 export default ArticleView;

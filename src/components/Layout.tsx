@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -6,17 +5,16 @@ import { Search, BookOpen, Moon, Sun, Scale } from "lucide-react";
 import { useTheme } from "next-themes";
 import SearchArticle from "./SearchArticle";
 import AllLaws from "./AllLaws";
-
 const Layout = () => {
-  const { theme, setTheme } = useTheme();
+  const {
+    theme,
+    setTheme
+  } = useTheme();
   const [activeTab, setActiveTab] = useState("search");
-
   const handleTabChange = (value: string) => {
     setActiveTab(value);
   };
-
-  return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
+  return <div className="min-h-screen bg-background text-foreground flex flex-col">
       <header className="border-b border-border sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-14 max-w-screen-2xl items-center">
           <div className="mr-4 hidden md:flex items-center gap-2">
@@ -25,11 +23,7 @@ const Layout = () => {
           </div>
           
           <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-            <Tabs 
-              value={activeTab} 
-              onValueChange={handleTabChange}
-              className="flex-1 md:flex-initial"
-            >
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1 md:flex-initial">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="search" className="flex items-center gap-2">
                   <Search className="h-4 w-4" />
@@ -42,11 +36,7 @@ const Layout = () => {
               </TabsList>
             </Tabs>
             
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            >
+            <Button variant="outline" size="icon" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
               <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
               <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
               <span className="sr-only">Alternar tema</span>
@@ -56,7 +46,7 @@ const Layout = () => {
       </header>
       
       <main className="flex-1">
-        <div className="container py-4 md:py-8">
+        <div className="container md:py-8 py-[16px]">
           {activeTab === "search" && <SearchArticle />}
           {activeTab === "browse" && <AllLaws />}
         </div>
@@ -67,8 +57,6 @@ const Layout = () => {
           <p>VADE MECUM <span className="font-bold">PRO</span> &copy; {new Date().getFullYear()} - Todos os direitos reservados</p>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Layout;

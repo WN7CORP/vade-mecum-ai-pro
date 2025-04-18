@@ -92,7 +92,7 @@ const AllLaws = () => {
     if (selectedArticle) {
       return <div className="space-y-4">
           <div className="flex items-center justify-between px-4">
-            <Button variant="ghost" onClick={backToArticles} className="gap-2">
+            <Button variant="ghost" onClick={backToArticles} className="gap-2 px-0 py-0 my-0 mx-0 font-normal">
               <ArrowLeft className="h-4 w-4" />
               Voltar
             </Button>
