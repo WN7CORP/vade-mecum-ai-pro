@@ -1,52 +1,34 @@
-
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Copy, FileDown, MicIcon, MicOffIcon, PauseIcon, PlayIcon, GanttChartSquare, 
-  Bookmark, BookmarkPlusIcon, StickyNote, FilePlus, Highlighter, MessageSquare, 
-  ArrowUpCircle, Lightbulb, ChevronUp, AlertCircle, Trash2, Info, Monitor, VolumeX,
-  Volume2, Maximize, ChevronLeft
-} from "lucide-react";
+import { Copy, FileDown, MicIcon, MicOffIcon, PauseIcon, PlayIcon, GanttChartSquare, Bookmark, BookmarkPlusIcon, StickyNote, FilePlus, Highlighter, MessageSquare, ArrowUpCircle, Lightbulb, ChevronUp, AlertCircle, Trash2, Info } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/use-toast";
-import { useIsMobile, useIsSmallMobile } from "@/hooks/use-mobile";
 import geminiAIService from "@/services/GeminiAIService";
 import speechService from "@/services/SpeechService";
 import pdfService from "@/services/PDFService";
-import NarrationControls from "./article/NarrationControls";
-import ArticleHighlighter from "./article/ArticleHighlighter";
-import ExplanationSection from "./article/ExplanationSection";
-import ArticleContent from "./article/ArticleContent";
-
 interface ArticleViewProps {
   articleNumber: string;
   content: string;
   lawTitle: string;
 }
-
 type HighlightColor = "purple" | "yellow" | "blue" | "green" | "pink";
-
 interface Highlight {
   text: string;
   color: HighlightColor;
   startIndex: number;
   endIndex: number;
 }
-
 interface Note {
   id: string;
   text: string;
   highlights: Highlight[];
   createdAt: Date;
 }
-
 interface ArticleHighlight {
   id: string;
   text: string;
@@ -54,7 +36,6 @@ interface ArticleHighlight {
   startOffset: number;
   endOffset: number;
 }
-
 const HIGHLIGHT_COLORS: Record<HighlightColor, string> = {
   purple: "bg-purple-500/30",
   yellow: "bg-yellow-500/30",
@@ -62,7 +43,6 @@ const HIGHLIGHT_COLORS: Record<HighlightColor, string> = {
   green: "bg-green-500/30",
   pink: "bg-pink-500/30"
 };
-
 const ArticleView: React.FC<ArticleViewProps> = ({
   articleNumber,
   content,
@@ -73,7 +53,6 @@ const ArticleView: React.FC<ArticleViewProps> = ({
   const [fontSize, setFontSize] = useState(16);
   const [isReading, setIsReading] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
   const [explanation, setExplanation] = useState<string>("");
   const [explanationMode, setExplanationMode] = useState<'technical' | 'formal'>('technical');
   const [example, setExample] = useState<string>("");
@@ -88,35 +67,8 @@ const ArticleView: React.FC<ArticleViewProps> = ({
   const [newNote, setNewNote] = useState("");
   const [showScrollToTop, setShowScrollToTop] = useState(false);
   const [explanationLoaded, setExplanationLoaded] = useState(false);
-  const [expandArticle, setExpandArticle] = useState(false);
-  const [activeTab, setActiveTab] = useState("article");
-  
   const contentRef = useRef<HTMLDivElement>(null);
   const articleRef = useRef<HTMLDivElement>(null);
-  const isMobile = useIsMobile();
-  const isSmallMobile = useIsSmallMobile();
-
-  // Efeito para alterar o tamanho da fonte em dispositivos móveis
-  useEffect(() => {
-    if (isMobile) {
-      // Em dispositivos móveis, começamos com uma fonte um pouco maior
-      setFontSize(18);
-    }
-  }, [isMobile]);
-
-  // Efeito para narração automática na aba de dúvidas
-  useEffect(() => {
-    if (activeTab === "questions" && answer && !isMuted) {
-      speechService.speak(answer, () => {}, () => {});
-    }
-    
-    return () => {
-      // Parar a narração quando mudar de aba
-      if (activeTab !== "questions") {
-        speechService.stop();
-      }
-    };
-  }, [activeTab, answer, isMuted]);
 
   // Formatar o conteúdo para exibição (com negrito para Art. e Parágrafo Único)
   const formatContent = (text: string) => {
@@ -227,11 +179,6 @@ const ArticleView: React.FC<ArticleViewProps> = ({
       setExplanation(explanation);
       setExplanationMode(mode);
       setExplanationLoaded(true);
-      
-      // Narrar automaticamente se não estiver mudo
-      if (!isMuted) {
-        speechService.speak(explanation, () => {}, () => {});
-      }
     } catch (error) {
       console.error('Falha ao carregar explicação:', error);
       setExplanation("Não foi possível carregar a explicação neste momento.");
@@ -243,27 +190,16 @@ const ArticleView: React.FC<ArticleViewProps> = ({
     } finally {
       setIsLoadingAI(false);
     }
-  }, [content, isMuted]);
+  }, [content]);
 
   // Carregar exemplo quando necessário
   const loadExample = useCallback(async () => {
-    if (example) {
-      // Se já tiver exemplo mas quiser ouvir
-      if (!isMuted) {
-        speechService.speak(example, () => {}, () => {});
-      }
-      return;
-    }
+    if (example) return; // Já carregado
 
     try {
       setIsLoadingAI(true);
       const exampleText = await geminiAIService.generateExample(content);
       setExample(exampleText);
-      
-      // Narrar automaticamente se não estiver mudo
-      if (!isMuted) {
-        speechService.speak(exampleText, () => {}, () => {});
-      }
     } catch (error) {
       console.error('Falha ao carregar exemplo prático:', error);
       setExample("Não foi possível carregar o exemplo prático neste momento.");
@@ -275,7 +211,7 @@ const ArticleView: React.FC<ArticleViewProps> = ({
     } finally {
       setIsLoadingAI(false);
     }
-  }, [content, example, isMuted]);
+  }, [content, example]);
 
   // Carregar anotações automáticas quando necessário
   const loadAINotes = useCallback(async () => {
@@ -316,17 +252,6 @@ const ArticleView: React.FC<ArticleViewProps> = ({
     };
   }, []);
 
-  // Toggle Mute para narração
-  const toggleMute = () => {
-    const newMuteState = speechService.toggleMute();
-    setIsMuted(newMuteState);
-    toast({
-      title: newMuteState ? "Narração desativada" : "Narração ativada",
-      description: newMuteState ? "A narração automática foi desativada." : "A narração automática foi ativada.",
-      duration: 3000
-    });
-  };
-
   // Funções para Text-to-Speech
   const startReading = () => {
     speechService.loadVoices().then(() => {
@@ -339,7 +264,6 @@ const ArticleView: React.FC<ArticleViewProps> = ({
       });
     });
   };
-  
   const pauseReading = () => {
     if (isReading && !isPaused) {
       speechService.pause();
@@ -349,7 +273,6 @@ const ArticleView: React.FC<ArticleViewProps> = ({
       setIsPaused(false);
     }
   };
-  
   const stopReading = () => {
     speechService.stop();
     setIsReading(false);
@@ -394,7 +317,6 @@ const ArticleView: React.FC<ArticleViewProps> = ({
       return newSize;
     });
   };
-  
   const decreaseFontSize = () => {
     setFontSize(prev => {
       const newSize = Math.max(prev - 2, 12);
@@ -409,11 +331,6 @@ const ArticleView: React.FC<ArticleViewProps> = ({
       setIsLoadingAI(true);
       const response = await geminiAIService.askQuestion(content, question);
       setAnswer(response);
-      
-      // Narrar automaticamente se não estiver mudo
-      if (!isMuted) {
-        speechService.speak(response, () => {}, () => {});
-      }
     } catch (error) {
       console.error('Falha ao obter resposta:', error);
       setAnswer("Não foi possível processar sua pergunta neste momento. Tente novamente mais tarde.");
@@ -519,13 +436,9 @@ const ArticleView: React.FC<ArticleViewProps> = ({
 
       // Adicionar o destaque à lista
       setArticleHighlights(prev => [...prev, newHighlight]);
-      
+
       // Limpar a seleção
       selection.removeAllRanges();
-      
-      // Fechar o modo expandido após destacar
-      setExpandArticle(false);
-      
       toast({
         title: "Texto destacado",
         description: "O trecho foi destacado com sucesso.",
@@ -573,11 +486,11 @@ const ArticleView: React.FC<ArticleViewProps> = ({
         example
       };
 
-      // Gerar o PDF com upload para o Google Drive
+      // Gerar o PDF
       const downloadLink = await pdfService.generatePDF(pdfData);
       toast({
-        title: "PDF gerado e salvo no Google Drive!",
-        description: "O arquivo foi salvo no seu Google Drive e estará disponível pelo link.",
+        title: "PDF gerado com sucesso!",
+        description: "O arquivo estará disponível por 7 dias.",
         duration: 5000
       });
 
@@ -603,393 +516,8 @@ const ArticleView: React.FC<ArticleViewProps> = ({
     });
   };
 
-  // Renderização do componente - versão Mobile
-  if (isMobile) {
-    return (
-      <div className="relative flex flex-col w-full h-full">
-        {/* Botão mudo para narração */}
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={toggleMute} 
-          className="fixed top-2 right-2 z-20 bg-background/80 backdrop-blur-sm rounded-full h-8 w-8 shadow"
-          aria-label={isMuted ? "Ativar narração" : "Desativar narração"}
-        >
-          {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-        </Button>
-
-        {/* Botão voltar ao topo */}
-        {showScrollToTop && (
-          <Button 
-            variant="secondary" 
-            size="icon" 
-            className="fixed bottom-16 right-2 z-10 rounded-full shadow-lg" 
-            onClick={scrollToTop} 
-            aria-label="Voltar ao topo"
-          >
-            <ChevronUp className="h-5 w-5" />
-          </Button>
-        )}
-
-        <Card className="min-h-[calc(100vh-4.5rem)] rounded-none border-none shadow-none bg-transparent flex flex-col overflow-hidden">
-          <CardHeader className="px-3 py-3 space-y-2">
-            <div className="flex justify-between items-center">
-              <div className="flex-1">
-                <p className="text-xs text-muted-foreground truncate">{lawTitle}</p>
-                <CardTitle className="text-xl text-primary flex items-center gap-1 font-serif">
-                  {articleNumber} 
-                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={toggleFavorite} aria-label={isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}>
-                    {isFavorite ? <Bookmark className="h-4 w-4 text-primary fill-primary" /> : <BookmarkPlusIcon className="h-4 w-4" />}
-                  </Button>
-                  {articleHighlights.length > 0 && (
-                    <div className="ml-1 text-sm text-yellow-500 flex items-center">
-                      <AlertCircle className="h-3 w-3 mr-1" />
-                      <span className="text-xs">{articleHighlights.length}</span>
-                    </div>
-                  )}
-                </CardTitle>
-              </div>
-              <div className="flex gap-1">
-                <Button variant="outline" size="icon" className="h-8 w-8" onClick={copyArticle} aria-label="Copiar artigo">
-                  <Copy className="h-4 w-4" />
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="icon" 
-                  className="h-8 w-8" 
-                  onClick={exportToPDF} 
-                  disabled={isExportingPDF} 
-                  aria-label="Exportar para PDF"
-                >
-                  {isExportingPDF ? (
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  ) : (
-                    <FileDown className="h-4 w-4" />
-                  )}
-                </Button>
-                <Button variant="outline" size="icon" className="h-8 w-8" aria-label="Versão PC">
-                  <Monitor className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Controles de áudio com botões maiores para mobile */}
-            <div className="flex flex-wrap items-center gap-1">
-              {!isReading ? (
-                <Button variant="outline" size="sm" onClick={startReading} className="h-8 gap-1 flex-1">
-                  <PlayIcon className="h-4 w-4" />
-                  Ouvir
-                </Button>
-              ) : (
-                <>
-                  <Button variant="outline" size="sm" onClick={pauseReading} className="h-8 gap-1 flex-1">
-                    {isPaused ? (
-                      <>
-                        <PlayIcon className="h-4 w-4" />
-                        Continuar
-                      </>
-                    ) : (
-                      <>
-                        <PauseIcon className="h-4 w-4" />
-                        Pausar
-                      </>
-                    )}
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={stopReading} className="h-8 gap-1 flex-1">
-                    <MicOffIcon className="h-4 w-4" />
-                    Parar
-                  </Button>
-                </>
-              )}
-
-              {/* Drawer para destacar texto em mobile */}
-              <Drawer>
-                <DrawerTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-8 gap-1 flex-1">
-                    <Highlighter className="h-4 w-4" />
-                    Destacar
-                  </Button>
-                </DrawerTrigger>
-                <DrawerContent>
-                  <div className="mx-auto w-full max-w-sm">
-                    <DrawerHeader>
-                      <DrawerTitle>Destacar texto</DrawerTitle>
-                      <DrawerDescription>
-                        Selecione uma cor e marque o texto do artigo
-                      </DrawerDescription>
-                    </DrawerHeader>
-                    <div className="p-4 space-y-4">
-                      <div className="flex justify-center gap-3 py-2">
-                        {Object.entries(HIGHLIGHT_COLORS).map(([color, className]) => (
-                          <button
-                            key={color} 
-                            className={`w-8 h-8 rounded-full ${className} ${selectedHighlightColor === color ? 'ring-2 ring-primary' : ''}`} 
-                            onClick={() => setSelectedHighlightColor(color as HighlightColor)}
-                            aria-label={`Selecionar cor ${color}`}
-                          />
-                        ))}
-                      </div>
-                      
-                      <div className="bg-secondary/20 rounded-lg p-4 max-h-60 overflow-auto">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="mb-2 w-full" 
-                          onClick={() => setExpandArticle(true)}
-                        >
-                          <Maximize className="h-4 w-4 mr-2" />
-                          Expandir artigo
-                        </Button>
-                        
-                        <div className="text-sm">
-                          {expandArticle ? (
-                            <div ref={contentRef} className="article-content prose max-w-none">
-                              {formattedContentWithHighlights()}
-                            </div>
-                          ) : (
-                            <p className="text-center text-muted-foreground py-4">
-                              Clique em "Expandir artigo" para selecionar texto
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div className="flex justify-between pt-2">
-                        <Button size="sm" variant="outline" onClick={addArticleHighlight} disabled={!expandArticle}>
-                          Aplicar destaque
-                        </Button>
-                        {articleHighlights.length > 0 && (
-                          <Button size="sm" variant="destructive" onClick={clearAllHighlights}>
-                            Limpar todos
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                    <DrawerFooter>
-                      <Button variant="outline" onClick={() => setExpandArticle(false)}>Fechar</Button>
-                    </DrawerFooter>
-                  </div>
-                </DrawerContent>
-              </Drawer>
-              
-              {/* Controles de fonte para mobile */}
-              <div className="flex gap-1 justify-end mt-1 w-full">
-                <Button variant="outline" size="sm" onClick={decreaseFontSize} className="h-8 w-8 p-0">
-                  A<span className="text-xs">-</span>
-                </Button>
-                <Button variant="outline" size="sm" onClick={increaseFontSize} className="h-8 w-8 p-0">
-                  A<span className="text-xs">+</span>
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-
-          <CardContent ref={articleRef} className="flex-1 p-0 overflow-y-auto">
-            <Tabs 
-              defaultValue="article" 
-              value={activeTab}
-              onValueChange={setActiveTab}
-              className="w-full"
-            >
-              <TabsList className="grid grid-cols-5 mx-2 sticky top-0 z-10 bg-background/95 backdrop-blur-sm">
-                <TabsTrigger value="article" className="text-xs py-1 px-0">Artigo</TabsTrigger>
-                <TabsTrigger value="explanation" className="text-xs py-1 px-0">Explicação</TabsTrigger>
-                <TabsTrigger value="example" className="text-xs py-1 px-0">Exemplo</TabsTrigger>
-                <TabsTrigger value="notes" className="text-xs py-1 px-0">Anotações</TabsTrigger>
-                <TabsTrigger value="questions" className="text-xs py-1 px-0">Dúvidas</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="article" className="mt-2 pb-4 px-3">
-                <div ref={contentRef} className="article-content prose prose-invert max-w-none" style={{
-                  fontSize: `${fontSize}px`
-                }}>
-                  {formattedContentWithHighlights()}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="explanation" className="mt-2 px-3 pb-4">
-                <div className="bg-secondary/50 p-4 rounded-lg">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      <Lightbulb className="h-5 w-5 text-primary" />
-                      <h3 className="text-lg font-medium">Explicação</h3>
-                    </div>
-                    
-                    {/* Seleção do modo de explicação */}
-                    <div className="flex gap-1">
-                      <Button size="sm" variant={explanationMode === 'technical' ? 'default' : 'outline'} onClick={() => loadExplanation('technical')} className="text-xs h-7 px-2">
-                        Técnica
-                      </Button>
-                      <Button size="sm" variant={explanationMode === 'formal' ? 'default' : 'outline'} onClick={() => loadExplanation('formal')} className="text-xs h-7 px-2">
-                        Simples
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  {isLoadingAI ? (
-                    <div className="flex justify-center items-center h-40">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                    </div>
-                  ) : !explanationLoaded ? (
-                    <div className="flex flex-col items-center justify-center h-40 gap-4">
-                      <p className="text-center text-muted-foreground">
-                        Selecione o tipo de explicação desejada
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="prose prose-invert max-w-none whitespace-pre-line">
-                      {explanation}
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="example" className="mt-2 px-3 pb-4">
-                <div className="bg-secondary/50 p-4 rounded-lg">
-                  <div className="flex items-center gap-2 mb-4">
-                    <GanttChartSquare className="h-5 w-5 text-primary" />
-                    <h3 className="text-lg font-medium">Exemplo Prático</h3>
-                  </div>
-                  {isLoadingAI ? (
-                    <div className="flex justify-center items-center h-40">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                    </div>
-                  ) : !example ? (
-                    <div className="flex flex-col items-center justify-center h-40 gap-4">
-                      <p className="text-center text-muted-foreground">
-                        Clique abaixo para gerar um exemplo prático
-                      </p>
-                      <Button onClick={loadExample}>Gerar exemplo</Button>
-                    </div>
-                  ) : (
-                    <div className="prose prose-invert max-w-none whitespace-pre-line">
-                      {example}
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="notes" className="mt-2 px-3 pb-4">
-                <div className="space-y-4">
-                  {/* IA Generated Notes */}
-                  <div className="bg-secondary/50 p-4 rounded-lg">
-                    <div className="flex items-center gap-2 mb-4">
-                      <StickyNote className="h-5 w-5 text-primary" />
-                      <h3 className="text-lg font-medium">Anotações Automáticas</h3>
-                    </div>
-                    {isLoadingAI ? (
-                      <div className="flex justify-center items-center h-40">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                      </div>
-                    ) : !aiNotes ? (
-                      <div className="flex flex-col items-center justify-center h-40 gap-4">
-                        <p className="text-center text-muted-foreground">
-                          Clique abaixo para gerar anotações automáticas
-                        </p>
-                        <Button onClick={loadAINotes}>Gerar anotações</Button>
-                      </div>
-                    ) : (
-                      <div className="prose prose-invert max-w-none whitespace-pre-line">
-                        {aiNotes}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* User Notes */}
-                  <div className="bg-card p-4 rounded-lg border border-border">
-                    <div className="flex items-center gap-2 mb-4">
-                      <FilePlus className="h-5 w-5 text-primary" />
-                      <h3 className="text-lg font-medium">Minhas Anotações</h3>
-                    </div>
-                    
-                    <div className="space-y-3 mb-4">
-                      {notes.length === 0 ? (
-                        <p className="text-muted-foreground text-center py-3 text-sm">
-                          Você ainda não tem anotações. Adicione uma abaixo!
-                        </p>
-                      ) : (
-                        notes.map(note => (
-                          <div key={note.id} className="bg-secondary/30 p-3 rounded-md">
-                            <p className="whitespace-pre-line text-sm">{note.text}</p>
-                            <div className="flex justify-between items-center mt-2">
-                              <span className="text-xs text-muted-foreground">
-                                {new Date(note.createdAt).toLocaleDateString()}
-                              </span>
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                onClick={() => removeNote(note.id)} 
-                                className="h-6 w-6"
-                              >
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Textarea 
-                        placeholder="Adicione uma nova anotação..." 
-                        value={newNote} 
-                        onChange={e => setNewNote(e.target.value)} 
-                        className="min-h-[80px]" 
-                      />
-                      
-                      <div className="flex justify-end">
-                        <Button onClick={addNote} disabled={!newNote.trim()}>Adicionar</Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="questions" className="mt-2 px-3 pb-4">
-                <div className="bg-secondary/50 p-4 rounded-lg">
-                  <div className="flex items-center gap-2 mb-4">
-                    <MessageSquare className="h-5 w-5 text-primary" />
-                    <h3 className="text-lg font-medium">Pergunte à IA</h3>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <Textarea 
-                      placeholder="Digite sua pergunta sobre este artigo..." 
-                      value={question} 
-                      onChange={e => setQuestion(e.target.value)} 
-                      className="min-h-[80px]" 
-                    />
-                    
-                    <div className="flex justify-end">
-                      <Button 
-                        onClick={askQuestion} 
-                        disabled={isLoadingAI || !question.trim()}
-                      >
-                        {isLoadingAI ? 'Processando...' : 'Perguntar'}
-                      </Button>
-                    </div>
-                    
-                    {answer && (
-                      <div className="mt-4 bg-card p-4 rounded-md border border-border">
-                        <h4 className="text-sm font-medium mb-2 text-primary">Resposta:</h4>
-                        <div className="prose prose-invert max-w-none whitespace-pre-line">
-                          {answer}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Renderização do componente original para desktop
-  return (
-    <div className="relative flex flex-col w-full h-full">
+  // Renderização do componente
+  return <div className="relative flex flex-col w-full h-full">
       {/* Botão flutuante para aumentar/diminuir fonte */}
       <div className="fixed bottom-24 left-4 z-10 flex flex-col gap-2 bg-card p-2 rounded-full shadow-lg border border-border">
         <Button variant="ghost" size="icon" onClick={increaseFontSize} aria-label="Aumentar fonte" className="rounded-full h-10 w-10 flex items-center justify-center">
@@ -1248,8 +776,6 @@ const ArticleView: React.FC<ArticleViewProps> = ({
           </Tabs>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 };
-
 export default ArticleView;

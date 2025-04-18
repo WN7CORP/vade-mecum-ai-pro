@@ -2,16 +2,14 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, BookOpen, Moon, Sun, Scale, Monitor } from "lucide-react";
+import { Search, BookOpen, Moon, Sun, Scale } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useIsMobile } from "@/hooks/use-mobile";
 import SearchArticle from "./SearchArticle";
 import AllLaws from "./AllLaws";
 
 const Layout = () => {
   const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState("search");
-  const isMobile = useIsMobile();
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -32,7 +30,7 @@ const Layout = () => {
               onValueChange={handleTabChange}
               className="flex-1 md:flex-initial"
             >
-              <TabsList className={`grid w-full ${isMobile ? 'grid-cols-2' : 'grid-cols-3'}`}>
+              <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="search" className="flex items-center gap-2">
                   <Search className="h-4 w-4" />
                   <span className="hidden sm:inline">Pesquisar</span>
@@ -41,12 +39,6 @@ const Layout = () => {
                   <BookOpen className="h-4 w-4" />
                   <span className="hidden sm:inline">Ver Tudo</span>
                 </TabsTrigger>
-                {!isMobile && (
-                  <TabsTrigger value="pc" className="flex items-center gap-2">
-                    <Monitor className="h-4 w-4" />
-                    <span className="hidden sm:inline">Versão PC</span>
-                  </TabsTrigger>
-                )}
               </TabsList>
             </Tabs>
             
@@ -64,27 +56,15 @@ const Layout = () => {
       </header>
       
       <main className="flex-1">
-        <div className={`container py-3 ${isMobile ? 'px-2' : 'py-8'}`}>
+        <div className="container py-4 md:py-8">
           {activeTab === "search" && <SearchArticle />}
           {activeTab === "browse" && <AllLaws />}
-          {activeTab === "pc" && (
-            <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-              <Monitor className="h-16 w-16 text-primary" />
-              <h2 className="text-2xl font-bold text-center">Versão para Desktop</h2>
-              <p className="text-center text-muted-foreground max-w-md">
-                Esta versão do VADE MECUM PRO foi otimizada para uso em computadores desktop, oferecendo recursos avançados de edição e análise.
-              </p>
-              <Button variant="default" size="lg" className="mt-4">
-                Acessar versão completa
-              </Button>
-            </div>
-          )}
         </div>
       </main>
       
-      <footer className="border-t border-border py-3 text-center text-xs text-muted-foreground">
+      <footer className="border-t border-border py-4 text-center text-sm text-muted-foreground">
         <div className="container">
-          <p>VADE MECUM <span className="font-bold">PRO</span> &copy; {new Date().getFullYear()} - leis tiradas do site https://www.gov.br/planalto/pt-br</p>
+          <p>VADE MECUM <span className="font-bold">PRO</span> &copy; {new Date().getFullYear()} - Todos os direitos reservados</p>
         </div>
       </footer>
     </div>
