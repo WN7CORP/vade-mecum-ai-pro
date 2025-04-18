@@ -66,7 +66,8 @@ class PDFService {
       }
 
       // Adicionar rodapé
-      const totalPages = pdf.getNumberOfPages();
+      // In newer versions of jsPDF, use internal.pages instead of getNumberOfPages()
+      const totalPages = Object.keys(pdf.internal.pages).length - 1;
       for(let i = 1; i <= totalPages; i++){
         pdf.setPage(i);
         pdf.setFontSize(10);
