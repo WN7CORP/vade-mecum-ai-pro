@@ -1,9 +1,15 @@
 
 class SpeechService {
   utterance: SpeechSynthesisUtterance | null = null;
+  isMuted: boolean = false;
   
   // Função para converter o texto para fala
   speak(text: string, onStart: () => void, onEnd: () => void): void {
+    if (this.isMuted) {
+      onEnd(); // Se estiver mudo, apenas chama o callback de finalização
+      return;
+    }
+    
     // Parar qualquer narração em andamento
     this.stop();
     
@@ -54,6 +60,20 @@ class SpeechService {
   stop(): void {
     window.speechSynthesis.cancel();
     this.utterance = null;
+  }
+
+  // Alternar o modo mudo
+  toggleMute(): boolean {
+    this.isMuted = !this.isMuted;
+    if (this.isMuted && this.utterance) {
+      this.stop();
+    }
+    return this.isMuted;
+  }
+
+  // Verifica se está mudo
+  isMutedStatus(): boolean {
+    return this.isMuted;
   }
 
   // Carregar vozes disponíveis - útil para inicialização
