@@ -612,7 +612,7 @@ const ArticleView: React.FC<ArticleViewProps> = ({
         maxHeight: "calc(100vh - 250px)"
       }}>
           <Tabs defaultValue="article" className="w-full">
-            <TabsList className="grid grid-cols-5 mx-4">
+            <TabsList className="grid grid-cols-5 mx-0">
               <TabsTrigger value="article">Artigo</TabsTrigger>
               <TabsTrigger value="explanation">Explicação</TabsTrigger>
               <TabsTrigger value="example">Exemplo</TabsTrigger>
