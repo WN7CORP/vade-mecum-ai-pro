@@ -1,9 +1,25 @@
-
-import { GoogleSpreadsheet, GoogleSpreadsheetRow } from 'google-spreadsheet';
+import { GoogleSpreadsheet } from 'google-spreadsheet';
 
 // Constantes
 const SPREADSHEET_ID = '1rctu_xg4P0KkMWKbzu7-mgJp-HjCu-cT8DZqNAzln-s';
 const API_KEY = 'AIzaSyDvJ23IolKwjdxAnTv7l8DwLuwGRZ_tIR8';
+
+/**
+ * Normaliza strings de artigo removendo prefixos e caracteres especiais,
+ * deixando apenas dígitos para comparação.
+ */
+function normalizeArticleKey(value: any): string {
+  if (value == null) return '';
+  // Converte para string, minúsculas, e remove todas as letras e símbolos não numéricos
+  return value
+    .toString()
+    .toLowerCase()
+    // Remove palavras 'art' ou 'artigo' e possíveis pontos
+    .replace(/art(igo)?\.?\s*/g, '')
+    // Remove símbolos de grau e qualquer coisa não numérica
+    .replace(/[^0-9]/g, '')
+    .trim();
+}
 
 interface Law {
   title: string;
@@ -11,11 +27,11 @@ interface Law {
 }
 
 interface Article {
-  number: string;
-  content: string;
+  number: string;    // Valor original da célula A
+  content: string;   // Texto da célula B
 }
 
-class GoogleSheetsService {
+export class GoogleSheetsService {
   private doc: GoogleSpreadsheet;
   private initialized: boolean = false;
   private laws: Law[] = [];
@@ -26,92 +42,69 @@ class GoogleSheetsService {
 
   async init() {
     if (this.initialized) return;
-
-    try {
-      // Load document properties and sheets
-      await this.doc.loadInfo();
-      this.initialized = true;
-
-      // Carrega as leis disponíveis
-      this.laws = [];
-      for (let i = 0; i < this.doc.sheetCount; i++) {
-        const sheet = this.doc.sheetsByIndex[i];
-        this.laws.push({
-          title: sheet.title,
-          index: i
-        });
-      }
-    } catch (error) {
-      console.error('Falha ao inicializar o serviço do Google Sheets:', error);
-      throw error;
+    await this.doc.loadInfo();
+    this.laws = [];
+    for (let i = 0; i < this.doc.sheetCount; i++) {
+      this.laws.push({ title: this.doc.sheetsByIndex[i].title, index: i });
     }
+    this.initialized = true;
   }
 
-  async getLaws() {
+  async getLaws(): Promise<Law[]> {
     if (!this.initialized) await this.init();
     return this.laws;
   }
 
-  async getArticleByNumber(lawIndex: number, articleNumber: string): Promise<Article | null> {
+  /**
+   * Busca um artigo por número, aceitando variações como '1', '1°', 'Art. 1', etc.
+   */
+  async getArticleByNumber(lawIndex: number, articleQuery: string): Promise<Article | null> {
     if (!this.initialized) await this.init();
+    const sheet = this.doc.sheetsByIndex[lawIndex];
+    // Carrega um intervalo suficiente para os artigos
+    await sheet.loadCells('A1:B1000');
 
-    try {
-      const sheet = this.doc.sheetsByIndex[lawIndex];
-      await sheet.loadCells('A1:B1000'); // Carrega um número razoável de células
+    const targetKey = normalizeArticleKey(articleQuery);
+    for (let row = 0; row < 1000; row++) {
+      const keyCell = sheet.getCell(row, 0);
+      const rawKey = keyCell.value;
+      const normalizedKey = normalizeArticleKey(rawKey);
 
-      // Procura pelo número do artigo na coluna A
-      for (let i = 0; i < 1000; i++) {
-        const cell = sheet.getCell(i, 0);
-        if (cell.value === articleNumber) {
-          // Encontrou o artigo, retorna o conteúdo da coluna B
-          const contentCell = sheet.getCell(i, 1);
-          return {
-            number: articleNumber,
-            content: contentCell.value?.toString() || ''
-          };
-        }
+      if (normalizedKey && normalizedKey === targetKey) {
+        const contentCell = sheet.getCell(row, 1);
+        return {
+          number: rawKey?.toString() || '',
+          content: contentCell.value?.toString() || ''
+        };
       }
-
-      return null; // Artigo não encontrado
-    } catch (error) {
-      console.error('Falha ao buscar artigo:', error);
-      throw error;
     }
+    return null;
   }
 
+  /**
+   * Retorna todos os artigos de uma lei, preservando os números originais.
+   */
   async getAllArticles(lawIndex: number): Promise<Article[]> {
     if (!this.initialized) await this.init();
+    const sheet = this.doc.sheetsByIndex[lawIndex];
+    await sheet.loadCells('A1:B1000');
 
-    try {
-      const sheet = this.doc.sheetsByIndex[lawIndex];
-      await sheet.loadCells('A1:B1000'); // Carrega um número razoável de células
-
-      const articles: Article[] = [];
-
-      // Percorre todas as linhas até encontrar uma vazia
-      for (let i = 0; i < 1000; i++) {
-        const numberCell = sheet.getCell(i, 0);
-        const contentCell = sheet.getCell(i, 1);
-
-        // Se a célula A não está vazia, é um artigo
-        if (numberCell.value) {
-          articles.push({
-            number: numberCell.value.toString(),
-            content: contentCell.value?.toString() || ''
-          });
-        }
-
-        // Se ambas as células estão vazias, assumimos que chegamos ao fim dos dados
-        if (!numberCell.value && !contentCell.value) {
-          if (articles.length > 0) break;
-        }
+    const articles: Article[] = [];
+    for (let row = 0; row < 1000; row++) {
+      const numCell = sheet.getCell(row, 0);
+      const contentCell = sheet.getCell(row, 1);
+      if (numCell.value) {
+        articles.push({
+          number: numCell.value.toString(),
+          content: contentCell.value?.toString() || ''
+        });
       }
-
-      return articles;
-    } catch (error) {
-      console.error('Falha ao buscar todos os artigos:', error);
-      throw error;
+      // Se chegamos numa linha em branco após já ter artigos, interrompe
+      if (!numCell.value && !contentCell.value && articles.length > 0) {
+        break;
+      }
     }
+    return articles;
   }
 }
 
