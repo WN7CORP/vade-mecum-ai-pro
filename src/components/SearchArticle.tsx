@@ -106,11 +106,11 @@ const SearchArticle = () => {
         {!searchedArticle ? <motion.div key="search" initial="hidden" animate="visible" exit={{
         opacity: 0,
         y: -20
-      }} variants={containerVariants} className="space-y-8 px-4 py-6">
+      }} variants={containerVariants} className="space-y-8 py-[24px] px-[20px]">
             <motion.div variants={itemVariants} className="text-center space-y-4">
               <h1 className="text-4xl font-bold text-primary font-serif flex items-center justify-center gap-2">
-                <Scale className="h-6 w-6" />
-                VADE MECUM <span className="text-gradient-primary font-bold">PRO</span>
+                <Scale className="h-6 w-6 px-0" />
+                VADE MECUM <span className="text-gradient-primary font-bold py-0 px-[10px]">PRO</span>
               </h1>
               <p className="text-muted-foreground">
                 Pesquise e estude a legislação com explicações detalhadas
@@ -118,8 +118,8 @@ const SearchArticle = () => {
             </motion.div>
             
             <motion.div variants={itemVariants} className="bg-card p-6 rounded-lg border border-border shadow-sm py-0 px-[5px]">
-              <div className="space-y-4">
-                <div className="space-y-2 py-[20px] px-0">
+              <div className="space-y-4 px-[10px]">
+                <div className="space-y-2 py-[14px] px-[7px]">
                   <label className="text-sm font-medium my-[2px] mx-[2px]">Lei</label>
                   <Select value={selectedLawIndex !== null ? selectedLawIndex.toString() : ""} onValueChange={value => setSelectedLawIndex(Number(value))}>
                     <SelectTrigger>
@@ -133,7 +133,7 @@ const SearchArticle = () => {
                   </Select>
                 </div>
                 
-                <div className="space-y-2 py-[10px] px-0 my-[25px]">
+                <div className="space-y-2 py-[10px] my-[25px] px-[7px]">
                   <label className="text-sm font-medium py-[2px] px-[2px]">Número do Artigo</label>
                   <div className="flex gap-2">
                     <motion.div className="flex-1" variants={shakeVariants} animate={shakeSearch ? "shake" : ""}>
@@ -158,7 +158,7 @@ const SearchArticle = () => {
                 </motion.div>}
               
               <motion.div variants={itemVariants} className="mt-6 text-center">
-                <div className="flex items-center justify-center gap-2 text-primary">
+                <div className="flex items-center justify-center gap-2 text-primary px-0 py-[8px]">
                   <Sparkles className="h-4 w-4" />
                   <span className="text-sm font-medium">Com explicação</span>
                 </div>
