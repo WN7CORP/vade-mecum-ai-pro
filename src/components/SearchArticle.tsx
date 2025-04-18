@@ -117,10 +117,10 @@ const SearchArticle = () => {
               </p>
             </motion.div>
             
-            <motion.div variants={itemVariants} className="bg-card p-6 rounded-lg border border-border shadow-sm py-[30px] px-[30px]">
+            <motion.div variants={itemVariants} className="bg-card p-6 rounded-lg border border-border shadow-sm py-0 px-[5px]">
               <div className="space-y-4">
                 <div className="space-y-2 py-[20px] px-0">
-                  <label className="text-sm font-medium">Lei</label>
+                  <label className="text-sm font-medium my-[2px] mx-[2px]">Lei</label>
                   <Select value={selectedLawIndex !== null ? selectedLawIndex.toString() : ""} onValueChange={value => setSelectedLawIndex(Number(value))}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione uma lei" />
@@ -134,7 +134,7 @@ const SearchArticle = () => {
                 </div>
                 
                 <div className="space-y-2 py-[10px] px-0 my-[25px]">
-                  <label className="text-sm font-medium">Número do Artigo</label>
+                  <label className="text-sm font-medium py-[2px] px-[2px]">Número do Artigo</label>
                   <div className="flex gap-2">
                     <motion.div className="flex-1" variants={shakeVariants} animate={shakeSearch ? "shake" : ""}>
                       <Input placeholder="Ex: Art. 5º ou 5" value={articleNumber} onChange={e => setArticleNumber(e.target.value)} onKeyDown={handleKeyPress} />
