@@ -108,7 +108,7 @@ const AllLaws = () => {
               <ArrowLeft className="h-4 w-4" />
               Voltar às Leis
             </Button>
-            <h2 className="text-lg font-medium truncate">
+            <h2 className="truncate font-medium text-lg">
               {laws[selectedLawIndex]?.title}
             </h2>
           </div>
@@ -119,7 +119,7 @@ const AllLaws = () => {
               <p className="text-destructive-foreground">{error}</p>
             </div> : <ScrollArea className="h-[calc(100vh-200px)]">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 px-0 py-[8px]">
-                {articles.map(article => <Card key={article.number} className="cursor-pointer hover:border-primary/50 transition-all" onClick={() => viewArticle(article)}>
+                {articles.map(article => <Card key={article.number} onClick={() => viewArticle(article)} className="cursor-pointer hover:border-primary/50 transition-all mx-0 my-[5px]">
                     <CardHeader className="p-4 flex flex-row items-center justify-between space-y-0">
                       <CardTitle className="text-xl font-medium">
                         {article.number}
