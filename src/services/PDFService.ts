@@ -2,14 +2,16 @@
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
+interface ArticleData {
+  number: string;
+  content: string;
+  lawTitle: string;
+  explanation?: string;
+  example?: string;
+}
+
 class PDFService {
-  async generatePDF(articleData: {
-    number: string;
-    content: string;
-    lawTitle: string;
-    explanation: string;
-    example: string;
-  }): Promise<string> {
+  async generatePDF(articleData: ArticleData): Promise<string> {
     try {
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
@@ -65,19 +67,14 @@ class PDFService {
 
       // Adicionar rodapé
       const totalPages = pdf.getNumberOfPages();
-      for (let i = 1; i <= totalPages; i++) {
+      for(let i = 1; i <= totalPages; i++){
         pdf.setPage(i);
         pdf.setFontSize(10);
         pdf.setTextColor(150);
-        pdf.text(
-          `VADE MECUM PRO - Página ${i} de ${totalPages} - Gerado em ${new Date().toLocaleDateString()}`,
-          margin,
-          pdf.internal.pageSize.getHeight() - 10
-        );
+        pdf.text(`VADE MECUM PRO - Página ${i} de ${totalPages} - Gerado em ${new Date().toLocaleDateString()}`, margin, pdf.internal.pageSize.getHeight() - 10);
       }
 
       // Simular o upload para o Google Drive e geração de link
-      // Aqui seria a implementação real da API do Google Drive
       const pdfData = pdf.output('datauristring');
       console.log('PDF gerado com sucesso');
       
