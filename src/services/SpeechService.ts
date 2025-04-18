@@ -1,3 +1,4 @@
+
 class SpeechService {
   private apiKey = 'AIzaSyDvJ23IolKwjdxAnTv7l8DwLuwGRZ_tIR8';
   private audio: HTMLAudioElement | null = null;
@@ -18,11 +19,11 @@ class SpeechService {
         input: { text },
         voice: {
           languageCode: 'pt-BR',
-          name: 'pt-BR-Wavenet-E',       // Wavenet‑E em pt‑BR
-          ssmlGender: 'NEUTRAL'
+          name: 'pt-BR-Wavenet-E',
+          ssmlGender: 'FEMALE'
         },
         audioConfig: {
-          audioEncoding: 'MP3',          // ou 'LINEAR16' se preferir WAV
+          audioEncoding: 'LINEAR16',
           speakingRate: 1.0,
           pitch: 0.0
         }

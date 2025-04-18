@@ -29,6 +29,9 @@ interface Law {
 interface Article {
   number: string;    // Valor original da célula A
   content: string;   // Texto da célula B
+  example?: string;
+  technicalExplanation?: string;
+  simpleExplanation?: string;
 }
 
 export class GoogleSheetsService {
@@ -61,8 +64,7 @@ export class GoogleSheetsService {
   async getArticleByNumber(lawIndex: number, articleQuery: string): Promise<Article | null> {
     if (!this.initialized) await this.init();
     const sheet = this.doc.sheetsByIndex[lawIndex];
-    // Carrega um intervalo suficiente para os artigos
-    await sheet.loadCells('A1:B1000');
+    await sheet.loadCells('A1:E1000');
 
     const targetKey = normalizeArticleKey(articleQuery);
     for (let row = 0; row < 1000; row++) {
@@ -72,34 +74,44 @@ export class GoogleSheetsService {
 
       if (normalizedKey && normalizedKey === targetKey) {
         const contentCell = sheet.getCell(row, 1);
+        const exampleCell = sheet.getCell(row, 2);
+        const technicalExplanationCell = sheet.getCell(row, 3);
+        const simpleExplanationCell = sheet.getCell(row, 4);
+        
         return {
           number: rawKey?.toString() || '',
-          content: contentCell.value?.toString() || ''
+          content: contentCell.value?.toString() || '',
+          example: exampleCell.value?.toString() || '',
+          technicalExplanation: technicalExplanationCell.value?.toString() || '',
+          simpleExplanation: simpleExplanationCell.value?.toString() || ''
         };
       }
     }
     return null;
   }
 
-  /**
-   * Retorna todos os artigos de uma lei, preservando os números originais.
-   */
   async getAllArticles(lawIndex: number): Promise<Article[]> {
     if (!this.initialized) await this.init();
     const sheet = this.doc.sheetsByIndex[lawIndex];
-    await sheet.loadCells('A1:B1000');
+    await sheet.loadCells('A1:E1000');
 
     const articles: Article[] = [];
     for (let row = 0; row < 1000; row++) {
       const numCell = sheet.getCell(row, 0);
       const contentCell = sheet.getCell(row, 1);
+      const exampleCell = sheet.getCell(row, 2);
+      const technicalExplanationCell = sheet.getCell(row, 3);
+      const simpleExplanationCell = sheet.getCell(row, 4);
+
       if (numCell.value) {
         articles.push({
           number: numCell.value.toString(),
-          content: contentCell.value?.toString() || ''
+          content: contentCell.value?.toString() || '',
+          example: exampleCell.value?.toString() || '',
+          technicalExplanation: technicalExplanationCell.value?.toString() || '',
+          simpleExplanation: simpleExplanationCell.value?.toString() || ''
         });
       }
-      // Se chegamos numa linha em branco após já ter artigos, interrompe
       if (!numCell.value && !contentCell.value && articles.length > 0) {
         break;
       }

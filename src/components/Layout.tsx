@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -5,21 +6,24 @@ import { Search, BookOpen, Moon, Sun, Scale } from "lucide-react";
 import { useTheme } from "next-themes";
 import SearchArticle from "./SearchArticle";
 import AllLaws from "./AllLaws";
+
 const Layout = () => {
-  const {
-    theme,
-    setTheme
-  } = useTheme();
+  const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState("search");
+
   const handleTabChange = (value: string) => {
     setActiveTab(value);
   };
-  return <div className="min-h-screen bg-background text-foreground flex flex-col">
+
+  return (
+    <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 max-w-screen-2xl items-center">
+        <div className="flex h-14 items-center px-4">
           <div className="mr-4 hidden md:flex items-center gap-2">
             <Scale className="h-5 w-5 text-primary" />
-            <h1 className="text-primary font-serif font-bold text-xl">VADE MECUM <span className="text-gradient-primary font-bold">PRO</span></h1>
+            <h1 className="text-primary font-serif font-bold text-xl">
+              VADE MECUM <span className="text-gradient-primary font-bold">PRO</span>
+            </h1>
           </div>
           
           <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
@@ -46,17 +50,19 @@ const Layout = () => {
       </header>
       
       <main className="flex-1">
-        <div className="container md:py-8 py-[16px]">
+        <div className="px-0">
           {activeTab === "search" && <SearchArticle />}
           {activeTab === "browse" && <AllLaws />}
         </div>
       </main>
       
       <footer className="border-t border-border py-4 text-center text-sm text-muted-foreground">
-        <div className="container">
+        <div className="px-4">
           <p>VADE MECUM <span className="font-bold">PRO</span> &copy; {new Date().getFullYear()} - Todos os direitos reservados</p>
         </div>
       </footer>
-    </div>;
+    </div>
+  );
 };
+
 export default Layout;

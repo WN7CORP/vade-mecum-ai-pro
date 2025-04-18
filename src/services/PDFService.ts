@@ -1,6 +1,5 @@
 
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 
 interface ArticleData {
   number: string;
@@ -8,6 +7,8 @@ interface ArticleData {
   lawTitle: string;
   explanation?: string;
   example?: string;
+  technicalExplanation?: string;
+  simpleExplanation?: string;
 }
 
 class PDFService {
@@ -27,32 +28,45 @@ class PDFService {
 
       // Artigo
       pdf.setFontSize(14);
-      pdf.setFont('helvetica', 'bold');
       pdf.text(`${articleData.number}`, margin, y);
       y += 10;
 
-      // Conteúdo do artigo
+      // Conteúdo
       pdf.setFontSize(12);
       pdf.setFont('helvetica', 'normal');
       const splitContent = pdf.splitTextToSize(articleData.content, contentWidth);
       pdf.text(splitContent, margin, y);
       y += splitContent.length * 7 + 10;
 
-      // Explicação
-      if (articleData.explanation) {
+      // Explicação Técnica
+      if (articleData.technicalExplanation) {
         pdf.setFontSize(14);
         pdf.setFont('helvetica', 'bold');
-        pdf.text('Explicação', margin, y);
+        pdf.text('Explicação Técnica', margin, y);
         y += 10;
 
         pdf.setFontSize(12);
         pdf.setFont('helvetica', 'normal');
-        const splitExplanation = pdf.splitTextToSize(articleData.explanation, contentWidth);
-        pdf.text(splitExplanation, margin, y);
-        y += splitExplanation.length * 7 + 10;
+        const splitTechnical = pdf.splitTextToSize(articleData.technicalExplanation, contentWidth);
+        pdf.text(splitTechnical, margin, y);
+        y += splitTechnical.length * 7 + 10;
       }
 
-      // Exemplo prático
+      // Explicação Simplificada
+      if (articleData.simpleExplanation) {
+        pdf.setFontSize(14);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Explicação Simplificada', margin, y);
+        y += 10;
+
+        pdf.setFontSize(12);
+        pdf.setFont('helvetica', 'normal');
+        const splitSimple = pdf.splitTextToSize(articleData.simpleExplanation, contentWidth);
+        pdf.text(splitSimple, margin, y);
+        y += splitSimple.length * 7 + 10;
+      }
+
+      // Exemplo Prático
       if (articleData.example) {
         pdf.setFontSize(14);
         pdf.setFont('helvetica', 'bold');
@@ -65,21 +79,18 @@ class PDFService {
         pdf.text(splitExample, margin, y);
       }
 
-      // Adicionar rodapé
-      // In newer versions of jsPDF, use internal.pages instead of getNumberOfPages()
+      // Add footer
       const totalPages = Object.keys(pdf.internal.pages).length - 1;
-      for(let i = 1; i <= totalPages; i++){
+      for(let i = 1; i <= totalPages; i++) {
         pdf.setPage(i);
         pdf.setFontSize(10);
         pdf.setTextColor(150);
         pdf.text(`VADE MECUM PRO - Página ${i} de ${totalPages} - Gerado em ${new Date().toLocaleDateString()}`, margin, pdf.internal.pageSize.getHeight() - 10);
       }
 
-      // Simular o upload para o Google Drive e geração de link
       const pdfData = pdf.output('datauristring');
       console.log('PDF gerado com sucesso');
       
-      // Simulando um link temporário (7 dias)
       const randomId = Math.random().toString(36).substring(2, 15);
       const tempLink = `https://drive.google.com/file/d/${randomId}/view?usp=sharing`;
       
