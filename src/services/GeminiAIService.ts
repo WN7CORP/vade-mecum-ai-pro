@@ -14,7 +14,7 @@ class GeminiAIService {
         
         A explicação deve ser abrangente e demonstrar conhecimento jurídico profundo.`;
       } else {
-        prompt = `Explique o seguinte artigo de lei de forma simples e acessível para alguém sem conhecimento jurídico:
+        prompt = `Explique o seguinte artigo de lei de forma simples e acessível para alguém sem conhecimento jurídico, use o formato do tetxo em mardown:
         
         "${articleText}"
         
@@ -57,7 +57,7 @@ class GeminiAIService {
       3. Conexões com outros artigos ou leis 
       4. Jurisprudências importantes (se aplicável)
       
-      Formate as anotações de forma clara e organizada para estudo.`;
+      Formate as anotações de forma clara e organizada para estudo, devera ser pequena.`;
 
       const response = await this.callGeminiAPI(prompt);
       return response;
