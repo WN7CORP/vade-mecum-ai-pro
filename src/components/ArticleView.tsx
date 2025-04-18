@@ -1,5 +1,4 @@
-
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,6 +19,10 @@ import { useIsMobile, useIsSmallMobile } from "@/hooks/use-mobile";
 import geminiAIService from "@/services/GeminiAIService";
 import speechService from "@/services/SpeechService";
 import pdfService from "@/services/PDFService";
+import NarrationControls from "./article/NarrationControls";
+import ArticleHighlighter from "./article/ArticleHighlighter";
+import ExplanationSection from "./article/ExplanationSection";
+import ArticleContent from "./article/ArticleContent";
 
 interface ArticleViewProps {
   articleNumber: string;
