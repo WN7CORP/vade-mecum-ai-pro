@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { 
   Copy, FileDown, MicIcon, MicOffIcon, PauseIcon, PlayIcon, GanttChartSquare, 
   Bookmark, BookmarkPlusIcon, StickyNote, FilePlus, Highlighter, MessageSquare, 
-  ArrowUpCircle, Lightbulb, ChevronUp, AlertCircle, Trash2, Info, Pc, VolumeX,
+  ArrowUpCircle, Lightbulb, ChevronUp, AlertCircle, Trash2, Info, Monitor, VolumeX,
   Volume2, Maximize, ChevronLeft
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -664,7 +664,7 @@ const ArticleView: React.FC<ArticleViewProps> = ({
                   )}
                 </Button>
                 <Button variant="outline" size="icon" className="h-8 w-8" aria-label="Versão PC">
-                  <Pc className="h-4 w-4" />
+                  <Monitor className="h-4 w-4" />
                 </Button>
               </div>
             </div>

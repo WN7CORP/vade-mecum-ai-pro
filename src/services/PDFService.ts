@@ -158,25 +158,26 @@ class PDFService {
 
   private async getAccessToken(): Promise<any> {
     return new Promise((resolve, reject) => {
-      if (typeof window.gapi === 'undefined') {
-        // Carrega a API do Google caso ainda não esteja carregada
+      // Carrega a API do Google através de script
+      const loadGoogleScript = () => {
         const script = document.createElement('script');
         script.src = 'https://apis.google.com/js/api.js';
         script.onload = () => {
-          window.gapi.load('client:auth2', () => {
-            window.gapi.client.init({
+          // Define o tipo global para window.gapi
+          (window as any).gapi.load('client:auth2', () => {
+            (window as any).gapi.client.init({
               apiKey: this.API_KEY,
               clientId: this.CLIENT_ID,
               discoveryDocs: [this.DISCOVERY_DOC],
               scope: this.SCOPES,
             }).then(() => {
               // Solicitar autorização
-              window.gapi.auth2.getAuthInstance().signIn().then(
-                (response) => {
+              (window as any).gapi.auth2.getAuthInstance().signIn().then(
+                (response: any) => {
                   const token = response.getAuthResponse();
                   resolve(token);
                 },
-                (error) => {
+                (error: any) => {
                   reject(error);
                 }
               );
@@ -185,14 +186,19 @@ class PDFService {
         };
         script.onerror = () => reject(new Error('Falha ao carregar API do Google'));
         document.body.appendChild(script);
+      };
+
+      // Verifica se a API já está carregada
+      if (typeof (window as any).gapi === 'undefined') {
+        loadGoogleScript();
       } else {
         // API já carregada, obter token
-        window.gapi.auth2.getAuthInstance().signIn().then(
-          (response) => {
+        (window as any).gapi.auth2.getAuthInstance().signIn().then(
+          (response: any) => {
             const token = response.getAuthResponse();
             resolve(token);
           },
-          (error) => {
+          (error: any) => {
             reject(error);
           }
         );

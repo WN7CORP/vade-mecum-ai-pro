@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, BookOpen, Moon, Sun, Scale, Pc } from "lucide-react";
+import { Search, BookOpen, Moon, Sun, Scale, Monitor } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useIsMobile } from "@/hooks/use-mobile";
 import SearchArticle from "./SearchArticle";
@@ -43,7 +43,7 @@ const Layout = () => {
                 </TabsTrigger>
                 {!isMobile && (
                   <TabsTrigger value="pc" className="flex items-center gap-2">
-                    <Pc className="h-4 w-4" />
+                    <Monitor className="h-4 w-4" />
                     <span className="hidden sm:inline">Versão PC</span>
                   </TabsTrigger>
                 )}
@@ -69,7 +69,7 @@ const Layout = () => {
           {activeTab === "browse" && <AllLaws />}
           {activeTab === "pc" && (
             <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-              <Pc className="h-16 w-16 text-primary" />
+              <Monitor className="h-16 w-16 text-primary" />
               <h2 className="text-2xl font-bold text-center">Versão para Desktop</h2>
               <p className="text-center text-muted-foreground max-w-md">
                 Esta versão do VADE MECUM PRO foi otimizada para uso em computadores desktop, oferecendo recursos avançados de edição e análise.

@@ -46,3 +46,26 @@ export function useIsSmallMobile() {
 
   return !!isSmallMobile
 }
+
+// Novos breakpoints para layouts mais otimizados
+export function useIsMediumScreen() {
+  const [isMediumScreen, setIsMediumScreen] = React.useState<boolean | undefined>(undefined)
+  const MEDIUM_SCREEN_BREAKPOINT = 992
+
+  React.useEffect(() => {
+    const mql = window.matchMedia(`(max-width: ${MEDIUM_SCREEN_BREAKPOINT - 1}px)`)
+    
+    const onChange = () => {
+      setIsMediumScreen(window.innerWidth < MEDIUM_SCREEN_BREAKPOINT)
+    }
+    
+    mql.addEventListener("change", onChange)
+    
+    // Executa imediatamente para definir o estado inicial
+    setIsMediumScreen(window.innerWidth < MEDIUM_SCREEN_BREAKPOINT)
+    
+    return () => mql.removeEventListener("change", onChange)
+  }, [])
+
+  return !!isMediumScreen
+}
