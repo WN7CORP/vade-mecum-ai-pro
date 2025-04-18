@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,17 +6,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, ArrowLeft, FileText, Bookmark } from "lucide-react";
 import ArticleView from "./ArticleView";
 import googleSheetsService from "@/services/GoogleSheetsService";
-
 interface Law {
   title: string;
   index: number;
 }
-
 interface Article {
   number: string;
   content: string;
 }
-
 const AllLaws = () => {
   const [laws, setLaws] = useState<Law[]>([]);
   const [selectedLawIndex, setSelectedLawIndex] = useState<number | null>(null);
@@ -38,7 +34,6 @@ const AllLaws = () => {
         setError("Falha ao carregar as leis disponíveis");
       }
     };
-
     loadLaws();
   }, []);
 
@@ -48,7 +43,6 @@ const AllLaws = () => {
     setError(null);
     setSelectedLawIndex(lawIndex);
     setSelectedArticle(null);
-    
     try {
       const allArticles = await googleSheetsService.getAllArticles(lawIndex);
       setArticles(allArticles);
@@ -80,14 +74,9 @@ const AllLaws = () => {
 
   // Adicionar aos favoritos
   const toggleFavorite = (article: Article) => {
-    const isAlreadyFavorite = favorites.some(fav => 
-      fav.number === article.number && fav.content === article.content
-    );
-    
+    const isAlreadyFavorite = favorites.some(fav => fav.number === article.number && fav.content === article.content);
     if (isAlreadyFavorite) {
-      setFavorites(favorites.filter(fav => 
-        !(fav.number === article.number && fav.content === article.content)
-      ));
+      setFavorites(favorites.filter(fav => !(fav.number === article.number && fav.content === article.content)));
     } else {
       setFavorites([...favorites, article]);
     }
@@ -95,45 +84,27 @@ const AllLaws = () => {
 
   // Verificar se um artigo está nos favoritos
   const isArticleFavorite = (article: Article) => {
-    return favorites.some(fav => 
-      fav.number === article.number && fav.content === article.content
-    );
+    return favorites.some(fav => fav.number === article.number && fav.content === article.content);
   };
 
   // Determinar qual visualização exibir
   const renderContent = () => {
     if (selectedArticle) {
-      return (
-        <div className="space-y-4">
+      return <div className="space-y-4">
           <div className="flex items-center justify-between px-4">
-            <Button
-              variant="ghost"
-              onClick={backToArticles}
-              className="gap-2"
-            >
+            <Button variant="ghost" onClick={backToArticles} className="gap-2">
               <ArrowLeft className="h-4 w-4" />
               Voltar
             </Button>
           </div>
           
-          <ArticleView
-            articleNumber={selectedArticle.number}
-            content={selectedArticle.content}
-            lawTitle={selectedLawIndex !== null ? laws[selectedLawIndex]?.title || "" : ""}
-          />
-        </div>
-      );
+          <ArticleView articleNumber={selectedArticle.number} content={selectedArticle.content} lawTitle={selectedLawIndex !== null ? laws[selectedLawIndex]?.title || "" : ""} />
+        </div>;
     }
-    
     if (selectedLawIndex !== null) {
-      return (
-        <div className="space-y-4">
+      return <div className="space-y-4">
           <div className="flex items-center justify-between px-4">
-            <Button
-              variant="ghost"
-              onClick={backToLaws}
-              className="gap-2"
-            >
+            <Button variant="ghost" onClick={backToLaws} className="gap-2">
               <ArrowLeft className="h-4 w-4" />
               Voltar às Leis
             </Button>
@@ -142,38 +113,22 @@ const AllLaws = () => {
             </h2>
           </div>
           
-          {isLoading ? (
-            <div className="flex justify-center items-center h-40">
+          {isLoading ? <div className="flex justify-center items-center h-40">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          ) : error ? (
-            <div className="bg-destructive/20 p-4 rounded-lg text-center">
+            </div> : error ? <div className="bg-destructive/20 p-4 rounded-lg text-center">
               <p className="text-destructive-foreground">{error}</p>
-            </div>
-          ) : (
-            <ScrollArea className="h-[calc(100vh-200px)]">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
-                {articles.map((article) => (
-                  <Card 
-                    key={article.number}
-                    className="cursor-pointer hover:border-primary/50 transition-all"
-                    onClick={() => viewArticle(article)}
-                  >
+            </div> : <ScrollArea className="h-[calc(100vh-200px)]">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 px-0 py-[8px]">
+                {articles.map(article => <Card key={article.number} className="cursor-pointer hover:border-primary/50 transition-all" onClick={() => viewArticle(article)}>
                     <CardHeader className="p-4 flex flex-row items-center justify-between space-y-0">
                       <CardTitle className="text-xl font-medium">
                         {article.number}
                       </CardTitle>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleFavorite(article);
-                        }}
-                      >
-                        <Bookmark 
-                          className={`h-5 w-5 ${isArticleFavorite(article) ? 'fill-primary text-primary' : ''}`} 
-                        />
+                      <Button variant="ghost" size="icon" onClick={e => {
+                  e.stopPropagation();
+                  toggleFavorite(article);
+                }} className="my-0 py-0 px-0">
+                        <Bookmark className={`h-5 w-5 ${isArticleFavorite(article) ? 'fill-primary text-primary' : ''}`} />
                       </Button>
                     </CardHeader>
                     <CardContent className="p-4 pt-0">
@@ -181,23 +136,16 @@ const AllLaws = () => {
                         {article.content}
                       </p>
                     </CardContent>
-                  </Card>
-                ))}
+                  </Card>)}
                 
-                {articles.length === 0 && (
-                  <div className="col-span-1 md:col-span-2 text-center py-8">
+                {articles.length === 0 && <div className="col-span-1 md:col-span-2 text-center py-8">
                     <p className="text-muted-foreground">Nenhum artigo encontrado nesta lei.</p>
-                  </div>
-                )}
+                  </div>}
               </div>
-            </ScrollArea>
-          )}
-        </div>
-      );
+            </ScrollArea>}
+        </div>;
     }
-
-    return (
-      <div className="space-y-6 p-4">
+    return <div className="space-y-6 p-4">
         <h1 className="text-2xl font-bold text-center text-primary">Leis Disponíveis</h1>
         
         <Tabs defaultValue="laws" className="w-full">
@@ -215,12 +163,7 @@ const AllLaws = () => {
           <TabsContent value="laws" className="mt-4">
             <ScrollArea className="h-[calc(100vh-250px)]">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {laws.map((law, index) => (
-                  <Card 
-                    key={index}
-                    className="cursor-pointer hover:border-primary/50 transition-all"
-                    onClick={() => loadArticles(index)}
-                  >
+                {laws.map((law, index) => <Card key={index} className="cursor-pointer hover:border-primary/50 transition-all" onClick={() => loadArticles(index)}>
                     <CardHeader className="p-4">
                       <CardTitle className="text-xl font-medium">
                         {law.title}
@@ -230,14 +173,11 @@ const AllLaws = () => {
                       <FileText className="h-4 w-4" />
                       <span>Ver artigos</span>
                     </CardContent>
-                  </Card>
-                ))}
+                  </Card>)}
                 
-                {laws.length === 0 && (
-                  <div className="col-span-1 md:col-span-2 text-center py-8">
+                {laws.length === 0 && <div className="col-span-1 md:col-span-2 text-center py-8">
                     <p className="text-muted-foreground">Nenhuma lei disponível no momento.</p>
-                  </div>
-                )}
+                  </div>}
               </div>
             </ScrollArea>
           </TabsContent>
@@ -245,24 +185,15 @@ const AllLaws = () => {
           <TabsContent value="favorites" className="mt-4">
             <ScrollArea className="h-[calc(100vh-250px)]">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {favorites.map((article, index) => (
-                  <Card 
-                    key={index}
-                    className="cursor-pointer hover:border-primary/50 transition-all"
-                    onClick={() => setSelectedArticle(article)}
-                  >
+                {favorites.map((article, index) => <Card key={index} className="cursor-pointer hover:border-primary/50 transition-all" onClick={() => setSelectedArticle(article)}>
                     <CardHeader className="p-4 flex flex-row items-center justify-between space-y-0">
                       <CardTitle className="text-xl font-medium">
                         {article.number}
                       </CardTitle>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleFavorite(article);
-                        }}
-                      >
+                      <Button variant="ghost" size="icon" onClick={e => {
+                    e.stopPropagation();
+                    toggleFavorite(article);
+                  }}>
                         <Bookmark className="h-5 w-5 fill-primary text-primary" />
                       </Button>
                     </CardHeader>
@@ -271,27 +202,19 @@ const AllLaws = () => {
                         {article.content}
                       </p>
                     </CardContent>
-                  </Card>
-                ))}
+                  </Card>)}
                 
-                {favorites.length === 0 && (
-                  <div className="col-span-1 md:col-span-2 text-center py-8">
+                {favorites.length === 0 && <div className="col-span-1 md:col-span-2 text-center py-8">
                     <p className="text-muted-foreground">Você ainda não adicionou nenhum artigo aos favoritos.</p>
-                  </div>
-                )}
+                  </div>}
               </div>
             </ScrollArea>
           </TabsContent>
         </Tabs>
-      </div>
-    );
+      </div>;
   };
-
-  return (
-    <div className="w-full max-w-4xl mx-auto">
+  return <div className="w-full max-w-4xl mx-auto">
       {renderContent()}
-    </div>
-  );
+    </div>;
 };
-
 export default AllLaws;
