@@ -1,64 +1,91 @@
 class SpeechService {
-  utterance: SpeechSynthesisUtterance | null = null;
-  apiKey: string = 'AIzaSyDvJ23IolKwjdxAnTv7l8DwLuwGRZ_tIR8';
-  
-  speak(text: string, onStart: () => void, onEnd: () => void): void {
+  private apiKey = 'AIzaSyDvJ23IolKwjdxAnTv7l8DwLuwGRZ_tIR8';
+  private audio: HTMLAudioElement | null = null;
+
+  async speak(
+    text: string,
+    onStart: () => void,
+    onEnd: () => void
+  ): Promise<void> {
+    // Parar qualquer áudio anterior
     this.stop();
-    
-    this.utterance = new SpeechSynthesisUtterance(text);
-    
-    // Configure for Wavenet-E voice
-    const voices = window.speechSynthesis.getVoices();
-    const wavenetVoice = voices.find(voice => voice.name.includes('Wavenet-E'));
-    
-    if (wavenetVoice) {
-      this.utterance.voice = wavenetVoice;
-    }
-    
-    this.utterance.rate = 1.0;
-    this.utterance.pitch = 1.0;
-    this.utterance.lang = 'pt-BR';
-    
-    this.utterance.onstart = onStart;
-    this.utterance.onend = onEnd;
-    this.utterance.onerror = () => {
-      console.error('Erro na narração');
+
+    // Dispara callback de início
+    onStart();
+
+    try {
+      const body = {
+        input: { text },
+        voice: {
+          languageCode: 'pt-BR',
+          name: 'pt-BR-Wavenet-E',       // Wavenet‑E em pt‑BR
+          ssmlGender: 'NEUTRAL'
+        },
+        audioConfig: {
+          audioEncoding: 'MP3',          // ou 'LINEAR16' se preferir WAV
+          speakingRate: 1.0,
+          pitch: 0.0
+        }
+      };
+
+      const res = await fetch(
+        `https://texttospeech.googleapis.com/v1/text:synthesize?key=${this.apiKey}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error(`TTS API error: ${res.statusText}`);
+      }
+
+      const json = await res.json() as { audioContent: string };
+      const audioData = atob(json.audioContent);
+      const buffer = new ArrayBuffer(audioData.length);
+      const view = new Uint8Array(buffer);
+      for (let i = 0; i < audioData.length; i++) {
+        view[i] = audioData.charCodeAt(i);
+      }
+
+      const blob = new Blob([view], { type: 'audio/mp3' });
+      const url = URL.createObjectURL(blob);
+      this.audio = new Audio(url);
+
+      this.audio.onended = () => {
+        onEnd();
+        URL.revokeObjectURL(url);
+      };
+      this.audio.onerror = (e) => {
+        console.error('Erro na reprodução:', e);
+        onEnd();
+        URL.revokeObjectURL(url);
+      };
+
+      this.audio.play();
+    } catch (err) {
+      console.error('Erro ao chamar a API TTS:', err);
       onEnd();
-    };
-    
-    window.speechSynthesis.speak(this.utterance);
-  }
-  
-  pause(): void {
-    window.speechSynthesis.pause();
-  }
-  
-  resume(): void {
-    window.speechSynthesis.resume();
-  }
-  
-  stop(): void {
-    window.speechSynthesis.cancel();
-    this.utterance = null;
+    }
   }
 
-  loadVoices(): Promise<SpeechSynthesisVoice[]> {
-    return new Promise((resolve) => {
-      let voices = window.speechSynthesis.getVoices();
-      
-      if (voices.length > 0) {
-        return resolve(voices);
-      }
-      
-      // Se as vozes não estiverem disponíveis imediatamente, aguardar o evento
-      const voicesChangedHandler = () => {
-        voices = window.speechSynthesis.getVoices();
-        resolve(voices);
-        window.speechSynthesis.removeEventListener('voiceschanged', voicesChangedHandler);
-      };
-      
-      window.speechSynthesis.addEventListener('voiceschanged', voicesChangedHandler);
-    });
+  pause(): void {
+    this.audio?.pause();
+  }
+
+  resume(): void {
+    this.audio?.play();
+  }
+
+  stop(): void {
+    if (this.audio) {
+      this.audio.pause();
+      this.audio.currentTime = 0;
+      this.audio = null;
+    }
   }
 }
 
